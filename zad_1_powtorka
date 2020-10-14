@@ -1,0 +1,120 @@
+create database s304184;
+
+create schema firma;
+
+create role ksiegowosc authorization dbo;
+
+
+
+create table pracownicy
+(
+id_pracownika int NOT NULL,
+imie varchar(30),
+nazwisko varchar(30),
+adres varchar(30),
+telefon varchar(15)
+)
+create table godziny
+(
+id_godziny int NOT NULL,
+data date,
+liczba_godzin int,
+id_pracownika int,
+)
+create table pensja_stanowisko
+(id_pensji int NOT NULL,
+stanowisko varchar(50),
+kwota int
+)
+create table premia
+(id_premii int NOT NULL,
+rodzaj varchar(50),
+kwota int
+)
+create table wynagrodzenie
+(id_wynagrodzenia int NOT NULL,
+data date, 
+id_pracownika int,
+id_godziny int,
+id_pensji int,
+id_premii int
+)
+ALTER TABLE pracownicy ADD PRIMARY KEY (id_pracownika)
+ALTER TABLE godziny ADD PRIMARY KEY (id_godziny)
+ALTER TABLE pensja_stanowisko ADD PRIMARY KEY (id_pensji)
+ALTER TABLE premia ADD PRIMARY KEY (id_premii)
+ALTER TABLE wynagrodzenie ADD PRIMARY KEY (id_wynagrodzenia)
+
+ALTER TABLE godziny ADD FOREIGN KEY (id_pracownika) REFERENCES pracownicy(id_pracownika)
+ALTER TABLE wynagrodzenie ADD FOREIGN KEY (id_pracownika) REFERENCES pracownicy(id_pracownika)
+ALTER TABLE wynagrodzenie ADD FOREIGN KEY (id_godziny) REFERENCES godziny(id_godziny)
+ALTER TABLE wynagrodzenie ADD FOREIGN KEY (id_pensji) REFERENCES pensja_stanowisko(id_pensji)
+ALTER TABLE wynagrodzenie ADD FOREIGN KEY (id_premii) REFERENCES premia(id_premii)
+
+ALTER TABLE godziny ADD miesiac date 
+ALTER TABLE godziny ADD tydzien date
+ALTER TABLE wynagrodzenie alter column data Varchar(12)
+
+INSERT INTO pracownicy ( id_pracownika, imie, nazwisko,adres,telefon)
+VALUES ('1', 'Maria', 'Nowak','Kraków','888888888'),('2', 'Jan', 'Kowalski','Warszawa','888999777'),('3', 'Marek', 'Potocki','Zabrze', '123456789'),('4', 'Anna', 'Jabłońska','Rumunia','545545545'),
+('5', 'Anna', 'Kurde','Katowice','865768347')
+
+INSERT INTO godziny (id_godziny,data,liczba_godzin,id_pracownika) VALUES ('1','2020-05-05','150','1'),('2','2020-04-04','160','2'),('3','2020-06-07','140','3'),('4','2020-12-24','180','4'),('5','2020-03-04','120','5')
+
+INSERT INTO pensja_stanowisko (id_pensji,kwota,stanowisko) values ('1','2200','senior matlab developper'),('2','1500','junior matlab developper'),('3','700','senior GIS analiser'),('4','2200','senior C++ developper'),('5','20000','MC Donnals')
+
+INSERT INTO premia (id_premii, rodzaj, kwota) values ('1','za opierdalanie sie', '500'),('2','za opierdalanie sie', '600'),('3','za opierdalanie sie', '700'),('4','za opierdalanie sie', '800'),('5','za opierdalanie sie', '900')
+
+INSERT INTO wynagrodzenie (id_wynagrodzenia, data, id_pracownika,id_godziny, id_pensji,id_premii) values ('1','2020-05-05','1','1','1','1'),('2','2020-06-06','2','2','2','2'),('3','2020-07-07','3','3','3','3'),
+('4','2020-09-09','4','4','4','4'),('5','2020-10-05','5','5','5','5')
+
+Select id_pracownika, nazwisko from pracownicy;
+Select pracownicy.id_pracownika from pracownicy,pensja_stanowisko,wynagrodzenie where kwota > 1000  and pracownicy.id_pracownika = wynagrodzenie.id_pracownika and wynagrodzenie.id_pensji = pensja_stanowisko.id_pensji
+Select pracownicy.id_pracownika from pracownicy,premia, pensja_stanowisko,wynagrodzenie  where premia.rodzaj = 'za opierdalanie sie' and pensja_stanowisko.kwota < 2000 and 
+pracownicy.id_pracownika = wynagrodzenie.id_pracownika and wynagrodzenie.id_pensji = pensja_stanowisko.id_pensji and wynagrodzenie.id_premii = premia.id_premii
+Select * from pracownicy where imie like 'J%'
+Select * from pracownicy where imie like '%a' and nazwisko like '%n%'
+Select imie, nazwisko, liczba_godzin - 160 as nadgodziny from pracownicy,godziny  where godziny.id_pracownika = pracownicy.id_pracownika
+Select imie, nazwisko  from pracownicy,pensja_stanowisko,wynagrodzenie where kwota between 1500 and 3000 and pracownicy.id_pracownika = wynagrodzenie.id_pracownika and wynagrodzenie.id_pensji = pensja_stanowisko.id_pensji
+Select imie, nazwisko as nadgodziny from pracownicy,godziny,premia, wynagrodzenie  where liczba_godzin > 160 and godziny.id_pracownika = pracownicy.id_pracownika and pracownicy.id_pracownika = wynagrodzenie.id_pracownika and
+premia.id_premii  = wynagrodzenie.id_premii
+
+Select imie, nazwisko, kwota from pracownicy,pensja_stanowisko,wynagrodzenie where pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji and pracownicy.id_pracownika = wynagrodzenie.id_pracownika order by pensja_stanowisko.kwota
+Select imie, nazwisko, pensja_stanowisko.kwota, premia.kwota from pracownicy,pensja_stanowisko,wynagrodzenie,premia where pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji and pracownicy.id_pracownika = wynagrodzenie.id_pracownika and 
+wynagrodzenie.id_premii = premia.id_premii order by pensja_stanowisko.kwota desc, premia.kwota desc
+Select count(stanowisko) from pensja_stanowisko group by stanowisko 
+Select avg(kwota),min(kwota),max(kwota) from pensja_stanowisko where stanowisko = 'senior matlab developper'
+Select sum(kwota) from pensja_stanowisko
+Select sum(kwota) from pensja_stanowisko group by stanowisko
+Select count(rodzaj) from premia, pensja_stanowisko,wynagrodzenie  where wynagrodzenie.id_pensji= pensja_stanowisko.id_pensji and wynagrodzenie.id_premii = premia.id_premii group by stanowisko
+
+
+
+UPDATE pracownicy SET telefon=CONCAT('(+48)',telefon) 
+select telefon from pracownicy
+UPDATE pracownicy SET telefon = SUBSTRING(telefon, 1, 8) + '-' + SUBSTRING(telefon, 9, 3) + '-' + SUBSTRING(telefon, 12, 3)
+
+
+select  top 1 id_pracownika,upper(imie),upper(nazwisko),upper(adres),telefon from pracownicy  order by len(nazwisko) desc ;
+
+
+Select  
+convert(varchar(30), HashBytes('MD5', STR(pracownicy.id_pracownika)),2) as id,
+convert(varchar(30), HashBytes('MD5', imie),2)as imie, 
+convert(varchar(30), HashBytes('MD5', nazwisko),2)as nazwisko,
+convert(varchar(30), HashBytes('MD5', adres),2)as adres,
+convert(varchar(30), HashBytes('MD5', telefon),2)as telefon,
+convert(varchar(30), HashBytes('MD5', STR(kwota)),2)as kwota
+from pracownicy, pensja_stanowisko,wynagrodzenie where pracownicy.id_pracownika = wynagrodzenie.id_wynagrodzenia and pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji
+
+declare @imie varchar(30)
+declare @nazwisko varchar(30)
+declare @data date
+declare @pensja int
+declare @premia int
+SELECT TOP 1 @imie=imie, @nazwisko=nazwisko, @data=data, @pensja=pensja_stanowisko.kwota, @premia=premia.kwota  FROM pracownicy, Wynagrodzenie, pensja_stanowisko, premia 
+	WHERE pracownicy.id_pracownika = Wynagrodzenie.id_pracownika
+		and pensja_stanowisko.id_pensji=Wynagrodzenie.id_pensji
+		and Wynagrodzenie.id_premii = premia.id_premii
+print @imie + @nazwisko + 'w dniu ' + '12.12.2002' + 'otrzymał pensję całkowitą na kwotę ' + str((@pensja + @premia)) +
+	'gdzie wynagrodzeniezasadnicze wynosiło:' + str(@pensja) + 'premia: ' + str(@premia)
