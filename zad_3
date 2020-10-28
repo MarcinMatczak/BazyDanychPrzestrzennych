@@ -1,0 +1,28 @@
+
+SELECT COUNT(DISTINCT p.gid) AS "Liczba_budynków" FROM popp p, majrivers m
+WHERE p.f_codedesc = 'Building' AND ST_DWithin(p.geom, m.geom, 100000);
+
+CREATE TABLE tableB
+AS
+SELECT DISTINCT p.gid, p.cat, p.f_codedesc, p.f_code, p.type, p.geom AS "Liczba_budynków" FROM popp p, majrivers m
+WHERE p.f_codedesc = 'Building' AND ST_DWithin(p.geom, m.geom, 100000);
+
+CREATE TABLE airportsNew
+AS
+SELECT name, geom, elev FROM airports;
+
+select st_x(geom),name from airports order by st_x(geom) desc limit 1
+select st_x(geom),name from airports order by st_x(geom) limit 1
+
+INSERT INTO airportsnew (name, elev, geom) VALUES ('airportB',111, (select st_centroid(ST_MakeLine(m.geom,n.geom)) from airportsnew m,airportsnew n where m.geom = (select geom from airports order by st_x(geom) desc limit 1)
+and n.geom = (select geom from airports order by st_x(geom) limit 1))) 
+SELECT * FROM airportsNew WHERE name = 'airportB';
+
+select st_area(st_buffer(st_shortestline(l.geom,a.geom),1000)) from lakes l,airports a where l.names='Iliamna Lake' and 
+a.name='AMBLER'
+
+SELECT tr.vegdesc, ST_Area(ST_union(St_intersection(ST_union(tr.geom),ST_union(s.geom)),
+									St_intersection(ST_union(tr.geom),ST_union(t.geom))))
+FROM trees tr, swamp s,tundra t
+GROUP BY tr.vegdesc;
+
